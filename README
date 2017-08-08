@@ -1,0 +1,6 @@
+XTW100 is a SPI NOR flash programmer made in China. I create this project
+to make using free software on this programmer possible.
+
+You need python-pyusb to run this.
+
+You can run ipython as root and `%load xtw100.py` to test this script.
