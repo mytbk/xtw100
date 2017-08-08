@@ -24,13 +24,22 @@ def xtw100_deinit(outep):
     outep.write('\x01\x08')
 
 
-def xtw100_read(inep, outep):
+def xtw100_detect(inep, outep):
+    # it's a little bit buggy here, so do it twice
+    outep.write('\x00\x09')
+    r = inep.read(64)
+    outep.write('\x00\x09')
+    r = inep.read(64)
+    return r
+
+
+def xtw100_read(inep, outep, size):
     outep.write('\x00\x07')
     inep.read(64)
     outep.write('\x00\x05')
     inep.read(64)
     data = b''
-    for i in range(0,32768):
+    for i in range(0,size//256):
         data += inep.read(256).tobytes()
     return data
 
@@ -42,7 +51,7 @@ def xtw100_write():
 
 
 def test_read(inep, outep):
-    allbytes = xtw100_read(inep, outep)
+    allbytes = xtw100_read(inep, outep, 8388608)
     xtw100_deinit(outep)
     f = open('/tmp/1.rom', 'wb')
     f.write(allbytes)
@@ -59,5 +68,5 @@ outep = usb.util.find_descriptor(intf, bEndpointAddress=4)
 
 inep = usb.util.find_descriptor(intf, bEndpointAddress=0x85)
 
-deinit(outep)
+xtw100_deinit(outep)
 
