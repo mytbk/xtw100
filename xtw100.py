@@ -43,8 +43,19 @@ def xtw100_read(inep, outep, size):
         data += inep.read(256).tobytes()
     return data
 
-def xtw100_erase():
-    pass
+
+# xtw100_erase: refer to fcn.00405168
+def xtw100_erase(inep, outep):
+    outep.write(b'\x00\x07')
+    print(inep.read(64))
+    # cmd[0:2] = \x01\x02
+    # cmd[0x11:2] is \x00\x80 for MX65L6445E
+    outep.write(b'\x01\x02'+b' '*15+b'\x00\x80')
+    working = 1
+    while working:
+        outep.write(b'\x00\x0a')
+        working = inep.read(64)[0]
+
 
 def xtw100_write():
     pass
