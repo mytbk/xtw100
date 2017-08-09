@@ -24,6 +24,11 @@ def xtw100_deinit(outep):
     outep.write('\x01\x08')
 
 
+def xtw100_cmd_begin(inep, outep):
+    outep.write(b'\x00\x07')
+    return inep.read(64)
+
+
 def xtw100_detect(inep, outep):
     # it's a little bit buggy here, so do it twice
     outep.write('\x00\x09')
@@ -34,8 +39,7 @@ def xtw100_detect(inep, outep):
 
 
 def xtw100_read(inep, outep, size):
-    outep.write('\x00\x07')
-    inep.read(64)
+    xtw100_cmd_begin(inep, outep)
     outep.write('\x00\x05')
     inep.read(64)
     data = b''
@@ -46,8 +50,7 @@ def xtw100_read(inep, outep, size):
 
 # xtw100_erase: refer to fcn.00405168
 def xtw100_erase(inep, outep):
-    outep.write(b'\x00\x07')
-    print(inep.read(64))
+    print(xtw100_cmd_begin(inep, outep))
     # cmd[0:2] = \x01\x02
     # cmd[0x11:2] is \x00\x80 for MX65L6445E
     outep.write(b'\x01\x02'+b' '*15+b'\x00\x80')
@@ -57,8 +60,15 @@ def xtw100_erase(inep, outep):
         working = inep.read(64)[0]
 
 
-def xtw100_write():
-    pass
+def xtw100_write(inep, outep, data, size):
+    print(xtw100_cmd_begin(inep, outep))
+    # cmd[0:2] = \x00\x05
+    # cmd[8:12] is needed
+    outep.write(b'\x00\x05'+b' '*6+b'\x00\x00\x00\x00')
+    i = 0
+    while i < size:
+        outep.write(data[i:i+256])
+        i += 256
 
 
 def test_read(inep, outep):
@@ -67,6 +77,20 @@ def test_read(inep, outep):
     f = open('/tmp/1.rom', 'wb')
     f.write(allbytes)
     f.close()
+
+
+def test_erase(inep, outep):
+    xtw100_erase(inep, outep)
+    xtw100_deinit(outep)
+
+
+def test_write(inep, outep):
+    testdata = bytearray(8388608)
+    for i in range(0, 0x8000):
+        for j in range(0, 256):
+            testdata[i*256+j] = (i+j)&0xff
+    xtw100_write(inep, outep, testdata, 8388608)
+
 
 dev = usb.core.find(idVendor=0x1fc8, idProduct=0x300b)
 
