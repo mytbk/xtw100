@@ -60,14 +60,26 @@ def xtw100_erase(inep, outep):
         working = inep.read(64)[0]
 
 
-def xtw100_write(inep, outep, data, size):
-    print(xtw100_cmd_begin(inep, outep))
+def xtw100_write(inep, outep, outdataep, data, size):
+    #print(xtw100_cmd_begin(inep, outep))
+    # it seems that we need to write all the 64 bytes in the next two commands
+    cmd07 = bytearray([0,7] + [0] + [0] + [0, 1] + [0xe8, 3] + [0,0,0x80,0] + [0x17, 0x20, 0xc2, 0] 
+            + [0, 0x4d, 0x58, 0x32, 0x35, 0x4c, 0x36, 0x34, 0x36, 0x35, 0x45, 0x00, 0xff, 0xff, 0xff, 0xff]
+            + [0x70, 0xc4, 0xec, 0x01, 0xf3, 0x7f, 0x40, 0x00, 0x10, 0xf4, 0x18, 0x00, 0x03, 0xb5, 0x55, 0x00]
+            + [0x1c, 0xc8, 0x56, 0x00, 0xe0, 0xf3, 0x18, 0x00, 0x0c, 0x00, 0x00, 0x00, 0x38, 0xbd, 0x00, 0x00])
+    outep.write(cmd07)
+    print(inep.read(64))
     # cmd[0:2] = \x00\x05
     # cmd[8:12] is needed
-    outep.write(b'\x00\x05'+b' '*6+b'\x00\x00\x00\x00')
+    #outep.write(b'\x00\x05'+b' '*6+b'\x00\x00\x00\x00')
+    cmd05 = bytearray([0, 5] + [0xa9, 0, 0, 0, 0, 0] + [0, 0, 0, 0] + [0x60, 0xf6, 0, 0]
+            + [0xc8, 0xf3, 0x18, 0, 0xc5, 0x96, 0x9c, 0x75, 0x40, 0x1e, 0xa8, 0, 0, 0, 0, 0]
+            + [0xbb, 0x0f, 0x1c, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+            + [0, 0, 0, 0, 0x38, 0xf4, 0x18, 0, 0xc8, 0xab, 0x4a, 0, 0x10, 2, 6, 0])
+    outep.write(cmd05)
     i = 0
     while i < size:
-        outep.write(data[i:i+256])
+        outdataep.write(data[i:i+256])
         i += 256
 
 
@@ -84,12 +96,12 @@ def test_erase(inep, outep):
     xtw100_deinit(outep)
 
 
-def test_write(inep, outep):
+def test_write(inep, outep, outdataep):
     testdata = bytearray(8388608)
     for i in range(0, 0x8000):
         for j in range(0, 256):
             testdata[i*256+j] = (i+j)&0xff
-    xtw100_write(inep, outep, testdata, 8388608)
+    xtw100_write(inep, outep, outdataep, testdata, 8388608)
 
 
 dev = usb.core.find(idVendor=0x1fc8, idProduct=0x300b)
@@ -100,7 +112,7 @@ cfg = dev.get_active_configuration()
 intf = cfg[(0,0)]
 
 outep = usb.util.find_descriptor(intf, bEndpointAddress=4)
-
+outdataep = usb.util.find_descriptor(intf, bEndpointAddress=5)
 inep = usb.util.find_descriptor(intf, bEndpointAddress=0x85)
 
 xtw100_deinit(outep)
