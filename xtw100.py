@@ -19,6 +19,7 @@
 
 import usb.core
 import usb.util
+import time
 
 def xtw100_deinit(outep):
     outep.write('\x01\x08')
@@ -49,15 +50,22 @@ def xtw100_read(inep, outep, size):
 
 
 # xtw100_erase: refer to fcn.00405168
-def xtw100_erase(inep, outep):
+def xtw100_erase(inep, outep, sleep_time = 1, count = 0):
     print(xtw100_cmd_begin(inep, outep))
     # cmd[0:2] = \x01\x02
     # cmd[0x11:2] is \x00\x80 for MX65L6445E
     outep.write(b'\x01\x02'+b' '*15+b'\x00\x80')
     working = 1
+    cnt = 0
     while working:
         outep.write(b'\x00\x0a')
+        time.sleep(sleep_time)
+        cnt = cnt + 1
+        if count > 0 and cnt == count:
+            break
         working = inep.read(64)[0]
+    xtw100_deinit(outep)
+    return cnt
 
 
 def xtw100_write(inep, outep, outdataep, data, size):
@@ -89,11 +97,6 @@ def test_read(inep, outep):
     f = open('/tmp/1.rom', 'wb')
     f.write(allbytes)
     f.close()
-
-
-def test_erase(inep, outep):
-    xtw100_erase(inep, outep)
-    xtw100_deinit(outep)
 
 
 def test_write(inep, outep, outdataep):
