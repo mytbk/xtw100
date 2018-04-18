@@ -3,4 +3,7 @@ to make using free software on this programmer possible.
 
 You need python-pyusb to run this.
 
-You can run ipython as root and `%load xtw100.py` to test this script.
+Install the 99-xtw100.rules to /etc/udev/rules.d so that you don't need
+root to manipulate the programmer.
+
+Run ipython and `%load xtw100.py` to test this script.

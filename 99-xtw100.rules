@@ -1,0 +1,3 @@
+# Put this file in /etc/udev/rules.d and reload udev rules as below or reboot:
+# sudo udevadm control --reload-rules && sudo udevadm trigger
+SUBSYSTEM=="usb", ATTRS{idVendor}=="1fc8", ATTRS{idProduct}=="300b", MODE="0666"
