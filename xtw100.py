@@ -35,7 +35,7 @@ def xtw100_detect(inep, outep):
     r = inep.read(64)
     outep.write('\x00\x09')
     r = inep.read(64)
-    return r
+    return { "manufacture_id": r[0], "model_id": (r[1]<<8)|r[2] }
 
 
 def xtw100_read(inep, outep, size):
