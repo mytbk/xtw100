@@ -1,9 +1,4 @@
 XTW100 is a SPI NOR flash programmer made in China. I create this project
 to make using free software on this programmer possible.
 
-You need python-pyusb to run this.
-
-Install the 99-xtw100.rules to /etc/udev/rules.d so that you don't need
-root to manipulate the programmer.
-
-Run ipython and `%load xtw100.py` to test this script.
+Since stm32-vserprog (https://github.com/dword1511/stm32-vserprog) supports this flash programmer, this project is deprecated. You should now flash the stm32-vserprog firmware to XTW100 and use flashrom to operate the programmer.
